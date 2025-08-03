@@ -341,8 +341,8 @@ PeaPodPulse/
 ├── prisma/
 │   └── schema.prisma       # Database schema with NextAuth.js models
 ├── node_modules/           # Dependencies (auto-generated)
-├── .env                    # Prisma environment file
-├── .env.local              # Local environment variables template
+├── .env.example            # Environment variables template (committed)
+├── .env.local              # Local environment variables (gitignored)
 ├── .eslintrc.json          # ESLint configuration
 ├── .gitignore              # Git ignore patterns
 ├── CLAUDE.md               # Project instructions and guidelines
@@ -351,6 +351,7 @@ PeaPodPulse/
 ├── next-env.d.ts           # Next.js TypeScript declarations
 ├── package.json            # Project dependencies and scripts
 ├── postcss.config.mjs      # PostCSS configuration for Tailwind
+├── README.md               # Project documentation and setup instructions  
 ├── tailwind.config.ts      # Tailwind CSS configuration with shadcn/ui setup
 ├── TechnicalDocument.md    # Complete project specifications
 └── tsconfig.json           # TypeScript configuration
