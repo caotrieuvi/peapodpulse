@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,22 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// NextAuth.js Models
 model Account {
   id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -39,18 +34,17 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String       @unique
   emailVerified DateTime?
   image         String?
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  accounts     Account[]
-  sessions     Session[]
-  userProfile  UserProfile?
+  role          Role         @default(USER)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  userProfile   UserProfile?
 }
 
 model VerificationToken {
@@ -61,20 +55,171 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Application Models
 model UserProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  stage     UserStage?
-  dueDate   DateTime?
-  birthDate DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String           @id @default(cuid())
+  userId           String           @unique
+  stage            UserStage?
+  dueDate          DateTime?
+  birthDate        DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  diaperLogs       DiaperLog[]
+  feedingLogs      FeedingLog[]
+  kickCountEntries KickCountEntry[]
+  sleepLogs        SleepLog[]
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weightEntries    WeightEntry[]
 }
 
-// Enums
+model Author {
+  id        String    @id @default(cuid())
+  name      String
+  bio       String?
+  image     String?
+  email     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  articles  Article[]
+  reviews   Review[]
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  articles    Article[]
+  reviews     Review[]
+}
+
+model Article {
+  id              String       @id @default(cuid())
+  title           String
+  slug            String       @unique
+  excerpt         String?
+  content         String
+  metaTitle       String?
+  metaDescription String?
+  published       Boolean      @default(false)
+  publishedAt     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  authorId        String
+  categoryId      String
+  author          Author       @relation(fields: [authorId], references: [id])
+  category        Category     @relation(fields: [categoryId], references: [id])
+  tags            ArticleTag[]
+}
+
+model Tag {
+  id       String       @id @default(cuid())
+  name     String       @unique
+  slug     String       @unique
+  articles ArticleTag[]
+}
+
+model ArticleTag {
+  articleId String
+  tagId     String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+}
+
+model ProductCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  reviews     Review[]
+}
+
+model Review {
+  id                String          @id @default(cuid())
+  title             String
+  slug              String          @unique
+  productName       String
+  brand             String?
+  excerpt           String?
+  content           String
+  metaTitle         String?
+  metaDescription   String?
+  overallRating     Float
+  priceRange        String?
+  pros              String[]
+  cons              String[]
+  specifications    Json?
+  published         Boolean         @default(false)
+  publishedAt       DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  authorId          String
+  categoryId        String
+  productCategoryId String
+  author            Author          @relation(fields: [authorId], references: [id])
+  category          Category        @relation(fields: [categoryId], references: [id])
+  productCategory   ProductCategory @relation(fields: [productCategoryId], references: [id])
+}
+
+model KickCountEntry {
+  id            String      @id @default(cuid())
+  userProfileId String
+  kickCount     Int
+  timeSpent     Int
+  notes         String?
+  createdAt     DateTime    @default(now())
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+}
+
+model WeightEntry {
+  id            String      @id @default(cuid())
+  userProfileId String
+  weight        Float
+  unit          WeightUnit  @default(LBS)
+  notes         String?
+  createdAt     DateTime    @default(now())
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+}
+
+model FeedingLog {
+  id            String      @id @default(cuid())
+  userProfileId String
+  feedingType   FeedingType
+  amount        Float?
+  unit          VolumeUnit? @default(ML)
+  duration      Int?
+  side          BreastSide?
+  notes         String?
+  createdAt     DateTime    @default(now())
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+}
+
+model SleepLog {
+  id            String      @id @default(cuid())
+  userProfileId String
+  startTime     DateTime
+  endTime       DateTime?
+  duration      Int?
+  sleepType     SleepType   @default(NIGHT_SLEEP)
+  notes         String?
+  createdAt     DateTime    @default(now())
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+}
+
+model DiaperLog {
+  id            String      @id @default(cuid())
+  userProfileId String
+  diaperType    DiaperType
+  notes         String?
+  createdAt     DateTime    @default(now())
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+}
+
 enum Role {
   USER
   ADMIN
@@ -84,4 +229,38 @@ enum UserStage {
   TRYING_TO_CONCEIVE
   PREGNANT
   NEW_PARENT
+}
+
+enum WeightUnit {
+  LBS
+  KG
+}
+
+enum FeedingType {
+  BREASTFEEDING
+  BOTTLE_FORMULA
+  BOTTLE_BREAST_MILK
+  SOLID_FOOD
+}
+
+enum VolumeUnit {
+  ML
+  OZ
+}
+
+enum BreastSide {
+  LEFT
+  RIGHT
+  BOTH
+}
+
+enum SleepType {
+  NIGHT_SLEEP
+  NAP
+}
+
+enum DiaperType {
+  WET
+  DIRTY
+  BOTH
 }
